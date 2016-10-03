@@ -1,5 +1,4 @@
 import { users } from './data.json'
-import request from 'superagent';
 import Twitter from 'twitter';
 
 const simplifyUsers = (collection) => collection
@@ -12,7 +11,7 @@ function routes(router) {
     ctx.body = simplifyUsers(users.slice(0, 10))
   })
 
-  router.get('/getTwitterFriends', async function (ctx) {
+  router.get('/getTwitterFriends/:twitterHandle', async function (ctx) {
     //console.log('twitter friends')
     const twitterConsumerKey = 'j7EBodP02a5ZFuy0u4hEZ97TS'
     const twitterConsumerSecret = 'Rew9SoyYlqfbYvsDhckOFpaYLf0xbK6ouNcwRKqDdixj6bJkgy'
@@ -25,20 +24,21 @@ function routes(router) {
       access_token_key: twitterAccessTokenKey,
       access_token_secret: twitterAccessTokenSecret
     })
-    //var { screen_name } = ctx.params
-    var params = { screen_name: 'lprajus2007' /*screen_name*/ }
-    client.get('friends/list', params, function(error, tweets, response) {
-      console.log(response.body)
+    var { twitterHandle } = ctx.params
+    var params = { screen_name: twitterHandle }
+    let response = new Promise ((resolve, reject) => client.get('friends/list', params, function(error, tweets, response) {
+      let names = JSON.parse(response.body).users.map((friend) => friend.name);
       if (!error) {
-        ctx.body = response.body
+        resolve(names)
       }
-    })
+      else reject(error)
+    }))
+    ctx.body = await response
   })
 
   router.get('/users/:seed', async function (ctx) {
     const { seed } = ctx.params
     const [ result ] = simplifyUsers(users.filter(user => user.seed === seed))
-
     if (!result) {
       ctx.body = { error: { message: 'User not found' } }
     } else {

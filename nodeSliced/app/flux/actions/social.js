@@ -13,26 +13,7 @@ var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
     process.env.USERPROFILE) + '/.credentials/';
 var TOKEN_PATH = TOKEN_DIR + 'gmail-nodejs-quickstart.json';
 
-// Load client secrets from a local file.
-fs.readFile('client_secret.json', function processClientSecrets(err, content) {
-  if (err) {
-    console.log('Error loading client secret file: ' + err);
-    return;
-  }
-  // Authorize a client with the loaded credentials, then call the
-  // Gmail API.
-  //authorize(JSON.parse(content), listLabels);
-  authorize(JSON.parse(content), listMessages);
-});
-
-/**
- * Create an OAuth2 client with the given credentials, and then execute the
- * given callback function.
- *
- * @param {Object} credentials The authorization client credentials.
- * @param {function} callback The callback to call with the authorized client.
- */
-function authorize(credentials, callback) {
+async function authorize(credentials, callback) {
   var clientSecret = credentials.installed.client_secret;
   var clientId = credentials.installed.client_id;
   var redirectUrl = credentials.installed.redirect_uris[0];
@@ -40,24 +21,18 @@ function authorize(credentials, callback) {
   var oauth2Client = new auth.OAuth2(clientId, clientSecret, redirectUrl);
 
   // Check if we have previously stored a token.
-  fs.readFile(TOKEN_PATH, function(err, token) {
+  return await new Promise ((resolve, reject) => fs.readFile(TOKEN_PATH, function(err, token) {
     if (err) {
       getNewToken(oauth2Client, callback);
-    } else {
+      reject();
+    } 
+    else {
       oauth2Client.credentials = JSON.parse(token);
       callback(oauth2Client);
     }
-  });
+  }))
 }
 
-/**
- * Get and store new token after prompting for user authorization, and then
- * execute the given callback with the authorized OAuth2 client.
- *
- * @param {google.auth.OAuth2} oauth2Client The OAuth2 client to get token for.
- * @param {getEventsCallback} callback The callback to call with the authorized
- *     client.
- */
 function getNewToken(oauth2Client, callback) {
   var authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
@@ -82,11 +57,6 @@ function getNewToken(oauth2Client, callback) {
   });
 }
 
-/**
- * Store token to disk be used in later program executions.
- *
- * @param {Object} token The token to store to disk.
- */
 function storeToken(token) {
   try {
     fs.mkdirSync(TOKEN_DIR);
@@ -99,33 +69,7 @@ function storeToken(token) {
   console.log('Token stored to ' + TOKEN_PATH);
 }
 
-/**
- * Lists the labels in the user's account.
- *
- * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
- */
-function listLabels(auth) {
-  var gmail = google.gmail('v1');
-  gmail.users.labels.list({
-    auth: auth,
-    userId: 'me',
-  }, function(err, response) {
-    if (err) {
-      console.log('The API returned an error: ' + err);
-      return;
-    }
-    var labels = response.labels;
-    if (labels.length == 0) {
-      console.log('No labels found.');
-    } else {
-      console.log('Labels:');
-      for (var i = 0; i < labels.length; i++) {
-        var label = labels[i];
-        console.log('- %s', label.name);
-      }
-    }
-  });
-}
+
 
 function getMessage(auth, messageId/*, callback*/) {
   var gmail = google.gmail('v1');
@@ -173,13 +117,51 @@ function listMessages(auth) {
     'userId': 'slicedprototype@gmail.com'
   }, function(err, response) {
     if (err) {
-      console.log(err);
-      return;
+      console.log(err)
+      reject(err)
     }
-    var messages = response.messages;
+    var messages = response.messages
+    result = []
     for (var i = 0; i < messages.length; i++) {
-      var message = messages[i];
-      getMessage(auth, message.id/*, (res) => console.log(res)*/);
+      var message = messages[i]
+      result[i] = getMessage(auth, message.id)
     }
   });
 }
+
+class SocialActions {
+
+  constructor() {
+    this.generateActions('setTwitterFriends')
+  }
+
+  getTwitterFriends(twitterHandle) {
+    return (dispatch, alt) =>
+      alt.resolve(async () => {
+        try {
+          alt.getActions('requests').start()
+          const response = await alt.request({ url: `/getTwitterFriends/${twitterHandle}` })
+          console.log(response)
+          // this.setTwitterFriends(response)
+        } catch (error) {
+          console.log(error)
+        }
+        alt.getActions('requests').stop()
+      })
+  }
+
+  getGmailMessages() {
+    return (dispatch, alt) => 
+      alt.resolve(async () => {
+        let result = new Promise ((resolve, reject) => fs.readFile('client_secret.json', function processClientSecrets(err, content) {
+          if (err) {
+            console.log('Error loading client secret file: ' + err);
+            reject();
+          }
+          resolve(authorize(JSON.parse(content), listMessages));
+        }))
+      })
+  }
+}
+
+export default SocialActions

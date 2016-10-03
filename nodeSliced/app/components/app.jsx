@@ -5,7 +5,7 @@ import Footer from 'components/footer'
 
 if (process.env.BROWSER) require('styles/app.css')
 
-//test git
+// test git
 class App extends Component {
 
   static propTypes = { children: PropTypes.node }
