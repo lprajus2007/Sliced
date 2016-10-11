@@ -2,7 +2,7 @@ import React, { Component, PropTypes } from 'react'
 import connect from 'connect-alt'
 import EmailView from 'components/emailView'
 
-@connect('social')
+@connect(({ social: { twitter } }) => ({ twitter }))
 class LoginPage extends Component {
 
   static propTypes = { twitter: PropTypes.array }
@@ -58,13 +58,12 @@ class LoginPage extends Component {
     const { flux } = this.context
     const data = Object.keys(this.refs).reduce((res, input) =>
       ({ ...res, [input]: this.refs[input].value }), {})
-    const response = flux.getActions('social').getTwitterFriends(data.username)
-    console.log(response)
+    flux.getActions('social').getTwitterFriends(data.username)
   }
 
   render() {
     const { i18n } = this.context
-    let { twitter } = this.props
+    const { twitter } = this.props
 
     return (
       <div>
@@ -73,7 +72,7 @@ class LoginPage extends Component {
           <div id='content' />
           <div className='form-group'>
             { !this.state.showLogout ? <div id='g-signin2' style={ { width: '240px', margin: '0px auto', display: 'inline-block' } } ></div>
-            : <div style={ { width: '240px', height: '50px', display: 'inline-block' } } onClick={ ::this.onSignOut } > Sign Out</div> }
+            : <div style={ { width: '240px', height: '50px', display: 'inline-block', background: '#4285F4', lineHeight: '50px', color: 'white', cursor: 'pointer' } } onClick={ ::this.onSignOut } > Sign Out</div> }
             <div />
             <label htmlFor='username'>
               { i18n('login.username.label') }
@@ -91,8 +90,8 @@ class LoginPage extends Component {
               { i18n('login.submit') }
             </button>
           </div>
-          <div>
-          { twitter }
+          <div style={ { marginTop: '40px' } } >
+          { twitter.map((user, i) => <div key={ i } >{ user }</div>) }
           </div>
         </form>
         <EmailView />

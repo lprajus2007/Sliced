@@ -10,6 +10,7 @@ class SocialActions {
         try {
           alt.getActions('requests').start()
           const response = await alt.request({ url: `/getTwitterFriends/${twitterHandle}` })
+          console.log(response)
           this.setTwitterFriends(response)
         } catch (error) {
           console.log(error)
