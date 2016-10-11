@@ -1,6 +1,5 @@
 import path from 'path'
 import webpack from 'webpack'
-
 import writeStats from './utils/write-stats'
 
 const JS_REGEX = /\.js$|\.jsx$|\.es6$|\.babel$/

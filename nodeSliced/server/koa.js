@@ -2,6 +2,7 @@ import path from 'path'
 import debug from 'debug'
 
 import Koa from 'koa'
+import hbs from 'koa-hbs'
 import mount from 'koa-mount'
 import helmet from 'koa-helmet'
 import logger from 'koa-logger'
@@ -57,6 +58,13 @@ if (env === 'development') {
 } else {
   app.use(convert(mount('/assets', staticCache(path.join(__dirname, '../dist'), cacheOpts))))
 }
+
+// Handlebars for default template
+app.use(hbs.middleware({
+  defaultLayout: 'index',
+  layoutsPath: path.join(__dirname, '/views/layouts'),
+  viewPath: path.join(__dirname, '/views')
+}));
 
 // mount `/api` router
 const apiRouter = new Router({ prefix: '/api' })

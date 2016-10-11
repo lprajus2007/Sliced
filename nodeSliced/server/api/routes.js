@@ -1,5 +1,6 @@
 import { users } from './data.json'
-import Twitter from 'twitter';
+import Twitter from 'twitter'
+import Social from './social'
 
 const simplifyUsers = (collection) => collection
   .map(({ user, seed }) => ({ ...user, seed }))
@@ -9,6 +10,13 @@ function routes(router) {
   router.get('/users', async function (ctx) {
     console.log('users route on server');
     ctx.body = simplifyUsers(users.slice(0, 10))
+  })
+
+  router.post('/getGmail', async function (ctx) {
+    console.log(ctx)
+    var { token } = ctx.params
+    let response = Social.getGmailMessages(token)
+    ctx.body = await response
   })
 
   router.get('/getTwitterFriends/:twitterHandle', async function (ctx) {

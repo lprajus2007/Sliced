@@ -50,6 +50,7 @@ export default async function (ctx) {
       delete require.cache[require.resolve('./webpack-stats.json')]
     }
 
+    const development = process.env.NODE_ENV === 'development'
     debug('dev')('return html content')
     const props = { body, assets, locale, title, description }
     const html = renderToString(<ServerHTML { ...props } />)
