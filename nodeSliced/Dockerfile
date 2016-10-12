@@ -1,22 +1,10 @@
-FROM mhart/alpine-node:4.2.1
+FROM gcr.io/google_appengine/nodejs
 EXPOSE 3000
 EXPOSE 3001
 EXPOSE 3002
 EXPOSE 3003
 
 WORKDIR /src
-
-RUN apk add --update \
-  build-base \
-  autoconf \
-  automake \
-  file \
-  nasm \
-  libpng-dev \
-  python \
-  bash \
-  git \
-  && rm -rf /var/cache/apk/*
 
 # Install and cache node_modules
 ADD package.json /src/package.json
